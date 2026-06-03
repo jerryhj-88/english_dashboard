@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>English Podcast Routine Dashboard</title>
+  <style>
+    :root {
+      --bg: #f5f7fb; --card: #ffffff; --ink: #172033; --muted: #687386;
+      --line: #e5e9f2; --accent: #2f5cff; --accent-soft: #eaf0ff;
+      --green: #0f9f6e; --yellow: #a16207; --red: #dc2626;
+      --shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",Arial,sans-serif; background:var(--bg); color:var(--ink); line-height:1.55; }
+    header { padding:34px 40px 24px; background:linear-gradient(135deg,#111827 0%,#26324a 100%); color:white; }
+    header h1 { margin:0 0 8px; font-size:32px; letter-spacing:-0.03em; }
+    header p { margin:0 0 22px; color:#d8deeb; }
+    .tabs { display:flex; gap:10px; flex-wrap:wrap; }
+    .tab-btn { border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.08); color:white; border-radius:999px; padding:10px 16px; font-weight:800; cursor:pointer; }
+    .tab-btn.active { background:white; color:#111827; }
+    main { max-width:1180px; margin:0 auto; padding:28px; }
+    .page { display:none; }
+    .page.active { display:block; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:20px; box-shadow:var(--shadow); padding:24px; }
+    .page-title { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:18px; }
+    h2 { margin:0 0 10px; font-size:24px; letter-spacing:-0.02em; }
+    h3 { margin:18px 0 10px; font-size:16px; }
+    .muted { color:var(--muted); font-size:14px; }
+    .toolbar { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+    .toolbar-left, .toolbar-right { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    button, .btn { border:1px solid var(--line); background:white; color:var(--ink); border-radius:12px; padding:9px 12px; font-weight:700; cursor:pointer; }
+    button.primary { background:var(--accent); border-color:var(--accent); color:white; }
+    button.danger { color:var(--red); }
+    button:hover { filter:brightness(.98); }
+    .calendar { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); border:1px solid var(--line); border-radius:16px; overflow:hidden; background:var(--line); gap:1px; }
+    .weekday { padding:10px 8px; background:#f0f3f9; font-weight:800; text-align:center; font-size:13px; }
+    .day { min-height:170px; background:white; padding:10px; cursor:pointer; transition:.15s; }
+    .day:hover { background:#fbfcff; outline:2px solid var(--accent-soft); }
+    .day.empty { background:#f8fafc; cursor:default; }
+    .date-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+    .date-num { font-weight:900; }
+    .today-badge, .tag { background:var(--accent-soft); color:var(--accent); border-radius:999px; padding:2px 8px; font-size:12px; font-weight:800; }
+    .podcast-pill { display:inline-block; background:#111827; color:white; border-radius:10px; padding:5px 8px; font-size:12px; font-weight:800; line-height:1.25; }
+    .todo-list { margin:8px 0 0; padding-left:18px; color:var(--muted); font-size:12px; }
+    .todo-list li { margin:2px 0; }
+    .done-mark { margin-top:8px; color:var(--green); font-weight:900; font-size:12px; }
+    label { display:block; margin:14px 0 6px; font-weight:800; font-size:13px; }
+    input, select, textarea { width:100%; border:1px solid var(--line); border-radius:12px; padding:11px 12px; font:inherit; background:white; }
+    textarea { min-height:110px; resize:vertical; }
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .check-row { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:14px; }
+    .check-item { display:flex; gap:8px; align-items:center; border:1px solid var(--line); border-radius:12px; padding:10px; margin:0; font-weight:700; }
+    .check-item input { width:auto; }
+    .archive-item { border:1px solid var(--line); border-radius:16px; padding:16px; margin-bottom:12px; background:#fff; }
+    .archive-head { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+    .archive-title { font-weight:900; font-size:16px; }
+    .archive-meta { color:var(--muted); font-size:13px; margin-top:3px; }
+    .archive-body { white-space:pre-wrap; background:#f8fafc; border:1px solid var(--line); border-radius:12px; padding:12px; margin-top:12px; font-size:14px; }
+    .template-box { background:#f8fafc; border:1px dashed #cbd5e1; border-radius:16px; padding:18px; }
+    .mini-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+    .podcast-card { border:1px solid var(--line); border-radius:16px; padding:16px; background:#fff; }
+    .podcast-card strong { display:block; margin-bottom:6px; }
+    @media (max-width:900px){ main{padding:18px}.two-col,.check-row,.mini-grid{grid-template-columns:1fr}.calendar{grid-template-columns:1fr}.weekday,.day.empty{display:none}.day{min-height:auto}.page-title{display:block} }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>English Podcast Routine Dashboard</h1>
+    <p>출퇴근 팟캐스트 청취 → 표현 정리 → 대화문 작성 → 암기 → 말하기 아웃풋</p>
+    <nav class="tabs" aria-label="Dashboard pages">
+      <button class="tab-btn active" data-page="calendarPage">캘린더</button>
+      <button class="tab-btn" data-page="todayPage">오늘 공부</button>
+      <button class="tab-btn" data-page="studyPage">팟캐스트 정리</button>
+      <button class="tab-btn" data-page="archivePage">아카이브</button>
+      <button class="tab-btn" data-page="guidePage">가이드</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="calendarPage" class="page active">
+      <div class="card">
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <button id="prevMonth">‹ 이전 달</button><button id="todayBtn">오늘</button><button id="nextMonth">다음 달 ›</button>
+          </div>
+          <h2 id="monthTitle" style="margin:0"></h2>
+        </div>
+        <p class="muted">날짜를 클릭하면 해당 날짜와 팟캐스트가 학습 기록 페이지에 자동 입력됩니다. 팟캐스트는 4개가 매일 순환됩니다.</p>
+        <div id="calendar" class="calendar"></div>
+      </div>
+    </section>
+
+    <section id="todayPage" class="page">
+      <div class="card">
+        <div class="page-title"><div><h2>오늘 공부</h2><p class="muted">오늘 해야 할 루틴만 크게 보는 페이지입니다.</p></div><button class="primary" id="goStudyBtn">오늘 기록 작성하기</button></div>
+        <div class="template-box" id="todayMission"></div>
+      </div>
+    </section>
+
+    <section id="studyPage" class="page">
+      <div class="card">
+        <h2>팟캐스트 정리</h2>
+        <p class="muted">저장하면 이 브라우저에 아카이브됩니다. 같은 파일을 같은 브라우저에서 열면 기록이 유지됩니다.</p>
+        <div class="two-col"><div><label for="studyDate">Date</label><input type="date" id="studyDate" /></div><div><label for="podcastName">Podcast</label><select id="podcastName"></select></div></div>
+        <label for="episodeTitle">Episode / Title</label><input id="episodeTitle" placeholder="예: 오늘 들은 에피소드 제목" />
+        <label for="summary">Podcast Summary</label><textarea id="summary" placeholder="핵심 내용 3줄 요약"></textarea>
+        <label for="expressions">Expressions Learned</label><textarea id="expressions" placeholder="1. expression — meaning — my sentence&#10;2. ..."></textarea>
+        <label for="dialogue">Conversation Script</label><textarea id="dialogue" placeholder="Situation: colleague와 주말 계획 이야기하기&#10;A: ...&#10;B: ..."></textarea>
+        <label for="output">Speaking Output</label><textarea id="output" placeholder="오늘 암기하고 말해본 내용 / 어려웠던 문장"></textarea>
+        <div class="check-row"><label class="check-item"><input type="checkbox" id="commuteIn" /> 출근길 청취</label><label class="check-item"><input type="checkbox" id="commuteOut" /> 퇴근길 청취</label><label class="check-item"><input type="checkbox" id="exprDone" /> 표현 5개 정리</label><label class="check-item"><input type="checkbox" id="dialogueDone" /> 대화문 작성</label><label class="check-item"><input type="checkbox" id="shadowingDone" /> Shadowing</label><label class="check-item"><input type="checkbox" id="speakingDone" /> Speaking Output</label></div>
+        <div class="toolbar" style="margin-top:16px"><div class="toolbar-left"><button class="primary" id="saveBtn">아카이브 저장</button><button id="clearFormBtn">폼 비우기</button></div></div>
+      </div>
+    </section>
+
+    <section id="archivePage" class="page">
+      <div class="card">
+        <div class="toolbar"><div><h2>Podcast Study Archive</h2><p class="muted" style="margin:0">저장한 학습 기록이 최신순으로 표시됩니다.</p></div><div class="toolbar-right"><button id="exportBtn">JSON 내보내기</button><button class="danger" id="deleteAllBtn">전체 삭제</button></div></div>
+        <div id="archiveList"></div>
+      </div>
+    </section>
+
+    <section id="guidePage" class="page">
+      <div class="card">
+        <h2>Daily To-do Template</h2>
+        <div class="template-box"><strong>출근길 1시간</strong>: 오늘의 팟캐스트 듣기 / 모르는 표현 메모<br><strong>퇴근길 1시간</strong>: 같은 에피소드 재청취 또는 핵심 구간 반복<br><strong>퇴근 후 30분</strong>: 표현 5개 정리 → 예문 작성 → 짧은 대화문 만들기<br><strong>마무리 10분</strong>: 대화문 3회 읽기 → 보지 않고 1분 말하기 → 녹음 확인</div>
+        <h3>Podcast Rotation</h3><div class="mini-grid" id="podcastCards"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const podcasts = ["All Ears English Podcast","Anything Goes with Emma Chamberlain","CNN 5 Things","Hey Tablo"];
+    const todo = ["출근길 팟캐스트 청취","퇴근길 핵심 구간 재청취","표현 5개 정리","대화문 작성","암기 후 1분 말하기"];
+    const STORAGE_KEY = "englishPodcastRoutineArchive.v3";
+    let current = new Date(); current.setDate(1);
+    const $ = id => document.getElementById(id);
+    function ymd(date){ const y=date.getFullYear(), m=String(date.getMonth()+1).padStart(2,"0"), d=String(date.getDate()).padStart(2,"0"); return `${y}-${m}-${d}`; }
+    function getPodcastForDate(date){ const base=new Date(2026,5,3); const diffDays=Math.floor((date-base)/(1000*60*60*24)); const idx=((diffDays%podcasts.length)+podcasts.length)%podcasts.length; return podcasts[idx]; }
+    function getArchive(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||[]}catch{return[]} }
+    function setArchive(items){ localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); }
+    function isDateSaved(dateString){ return getArchive().some(item=>item.studyDate===dateString); }
+    function showPage(id){ document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id)); document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.page===id)); window.scrollTo({top:0,behavior:'smooth'}); }
+    function renderPodcastOptions(){ $('podcastName').innerHTML=podcasts.map(p=>`<option value="${p}">${p}</option>`).join(''); $('podcastCards').innerHTML=podcasts.map((p,i)=>`<div class="podcast-card"><strong>${i+1}. ${p}</strong><span class="muted">${i===0?'영어 회화/표현':i===1?'일상 대화/자연스러운 톤':i===2?'뉴스 리스닝': '문화/인터뷰 표현'}</span></div>`).join(''); }
+    function renderTodayMission(){ const today=new Date(); const p=getPodcastForDate(today); $('todayMission').innerHTML=`<h3 style="margin-top:0">${ymd(today)} · ${p}</h3><ul>${todo.map(t=>`<li>${t}</li>`).join('')}</ul><p class="muted">캘린더에서 다른 날짜를 선택하면 팟캐스트 정리 페이지의 날짜와 팟캐스트가 자동 변경됩니다.</p>`; }
+    function renderCalendar(){ const year=current.getFullYear(), month=current.getMonth(); $('monthTitle').textContent=`${year}년 ${month+1}월`; const first=new Date(year,month,1), last=new Date(year,month+1,0), startDay=first.getDay(), todayStr=ymd(new Date()), weekdays=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]; let html=weekdays.map(w=>`<div class="weekday">${w}</div>`).join(''); for(let i=0;i<startDay;i++) html+=`<div class="day empty"></div>`; for(let d=1; d<=last.getDate(); d++){ const date=new Date(year,month,d), dateString=ymd(date), podcast=getPodcastForDate(date), saved=isDateSaved(dateString); html+=`<div class="day" data-date="${dateString}" data-podcast="${podcast}"><div class="date-row"><span class="date-num">${d}</span>${dateString===todayStr?`<span class="today-badge">Today</span>`:''}</div><span class="podcast-pill">${podcast}</span><ul class="todo-list">${todo.map(t=>`<li>${t}</li>`).join('')}</ul>${saved?`<div class="done-mark">✓ Archived</div>`:''}</div>`; } $('calendar').innerHTML=html; document.querySelectorAll('.day:not(.empty)').forEach(day=>day.addEventListener('click',()=>{ $('studyDate').value=day.dataset.date; $('podcastName').value=day.dataset.podcast; showPage('studyPage'); })); }
+    function clearForm(){ ["episodeTitle","summary","expressions","dialogue","output"].forEach(id=>$(id).value=''); ["commuteIn","commuteOut","exprDone","dialogueDone","shadowingDone","speakingDone"].forEach(id=>$(id).checked=false); }
+    function saveEntry(){ const studyDate=$('studyDate').value; if(!studyDate){ alert('날짜를 선택해 주세요.'); return; } const entry={id:Date.now(),studyDate,podcastName:$('podcastName').value,episodeTitle:$('episodeTitle').value.trim(),summary:$('summary').value.trim(),expressions:$('expressions').value.trim(),dialogue:$('dialogue').value.trim(),output:$('output').value.trim(),checklist:{commuteIn:$('commuteIn').checked,commuteOut:$('commuteOut').checked,exprDone:$('exprDone').checked,dialogueDone:$('dialogueDone').checked,shadowingDone:$('shadowingDone').checked,speakingDone:$('speakingDone').checked},savedAt:new Date().toISOString()}; const items=getArchive().filter(item=>item.studyDate!==studyDate); items.push(entry); items.sort((a,b)=>b.studyDate.localeCompare(a.studyDate)); setArchive(items); renderArchive(); renderCalendar(); alert('저장 완료! 아카이브에 기록됐습니다.'); showPage('archivePage'); }
+    function renderArchive(){ const items=getArchive(); if(!items.length){ $('archiveList').innerHTML=`<p class="muted">아직 저장된 기록이 없습니다.</p>`; return; } $('archiveList').innerHTML=items.map(item=>{ const checks=item.checklist||{}, doneCount=Object.values(checks).filter(Boolean).length; return `<article class="archive-item"><div class="archive-head"><div><div class="archive-title">${item.studyDate} · ${item.podcastName}</div><div class="archive-meta">${item.episodeTitle||'Episode title not added'} · <span class="tag">${doneCount}/6 done</span></div></div><button class="danger" onclick="deleteEntry(${item.id})">삭제</button></div><div class="archive-body"><strong>Summary</strong>\n${escapeHtml(item.summary||'-')}\n\n<strong>Expressions</strong>\n${escapeHtml(item.expressions||'-')}\n\n<strong>Dialogue</strong>\n${escapeHtml(item.dialogue||'-')}\n\n<strong>Speaking Output</strong>\n${escapeHtml(item.output||'-')}</div></article>`; }).join(''); }
+    function escapeHtml(str){ return String(str).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;'); }
+    window.deleteEntry=function(id){ if(!confirm('이 기록을 삭제할까요?')) return; setArchive(getArchive().filter(item=>item.id!==id)); renderArchive(); renderCalendar(); }
+    function exportArchive(){ const blob=new Blob([JSON.stringify(getArchive(),null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='english-podcast-archive.json'; a.click(); URL.revokeObjectURL(url); }
+    function init(){ renderPodcastOptions(); renderTodayMission(); const today=new Date(); $('studyDate').value=ymd(today); $('podcastName').value=getPodcastForDate(today); renderCalendar(); renderArchive(); document.querySelectorAll('.tab-btn').forEach(btn=>btn.addEventListener('click',()=>showPage(btn.dataset.page))); $('goStudyBtn').addEventListener('click',()=>showPage('studyPage')); $('prevMonth').addEventListener('click',()=>{current.setMonth(current.getMonth()-1);renderCalendar();}); $('nextMonth').addEventListener('click',()=>{current.setMonth(current.getMonth()+1);renderCalendar();}); $('todayBtn').addEventListener('click',()=>{current=new Date();current.setDate(1);renderCalendar();}); $('saveBtn').addEventListener('click',saveEntry); $('clearFormBtn').addEventListener('click',clearForm); $('exportBtn').addEventListener('click',exportArchive); $('deleteAllBtn').addEventListener('click',()=>{ if(!confirm('모든 아카이브 기록을 삭제할까요?')) return; localStorage.removeItem(STORAGE_KEY); renderArchive(); renderCalendar(); }); }
+    init();
+  </script>
+</body>
+</html>
